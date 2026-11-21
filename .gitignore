@@ -1,0 +1,6 @@
+# Scan data and per-repo findings name third-party repositories. Kept local, shared privately.
+data/
+out/
+pilot_prs.txt
+__pycache__/
+*.pyc
