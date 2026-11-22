@@ -1,10 +1,9 @@
 import csv
-import json
 import unittest
 from datetime import timedelta
 
 from cohort import HORIZON, START, make_table
-from pilot_review import EVIDENCE, outcomes, triage
+from pilot_review import EVIDENCE, outcomes
 
 
 def request(number, age=None, merged=False, opened=START, org="team"):
@@ -43,15 +42,3 @@ class CohortTests(unittest.TestCase):
         self.assertEqual(outcomes(rows, 30, 30), (335, 19, 46, 270))
         with self.assertRaises(ValueError):
             outcomes(rows, 100, 30)
-
-
-class DecisionTests(unittest.TestCase):
-    def test_saved_cases_and_incomplete_controls(self):
-        runner, partial, code = json.loads((EVIDENCE / "cases.json").read_text())
-        self.assertIn("shared runner", triage(runner))
-        self.assertIn("Re-run", triage(partial))
-        self.assertIn("source patch", triage(code))
-        runner["old"]["base"] = "different failure"
-        self.assertIn("controls", triage(runner))
-        runner["old"]["upgrade"] = "pass"
-        self.assertIn("original failure", triage(runner))

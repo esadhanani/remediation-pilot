@@ -1,27 +1,10 @@
-"""Replay the published pilot evidence offline, using only Python's standard library."""
+"""Calculate merge outcomes from the published counts and print the three recorded case notes."""
 import argparse
 import csv
 import json
 from pathlib import Path
 
 EVIDENCE = Path(__file__).resolve().parent / "evidence"
-
-
-def triage(case):
-    before = case["old"]
-    after = case["changed"]
-    failure = before["upgrade"]
-    if failure in (None, "pass"):
-        return "Establish the original failure"
-    if after["upgrade"] != "pass":
-        return "Re-run the same check on the proposed change"
-    if case["intervention"] == "source":
-        return "Review the source patch on the upgraded branch"
-    if case["intervention"] != "runner":
-        return "Review intervention manually"
-    if before["base"] == failure and after["base"] == "pass":
-        return "Test the shared runner change in hosted CI"
-    return "Collect matching base-branch controls before attributing the failure"
 
 
 def outcomes(rows, start, window):
@@ -57,7 +40,6 @@ def main():
             old = case["old"][revision] or "unobserved"
             changed = case["changed"][revision] or "unobserved"
             print(f"  {revision:7}  {old} -> {changed}")
-        print("  Decision:", triage(case))
         print("  Evidence:", case["record"])
         print("  Limit:", case["limit"])
         print(f"  Inspect: evidence/{case['patch']} | {case['source']}")

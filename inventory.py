@@ -10,6 +10,7 @@ Only public data is read. Needs a GitHub token (uses `gh auth token`).
 """
 import concurrent.futures as cf
 import datetime as dt
+from functools import lru_cache
 import json
 import pathlib
 import ssl
@@ -22,7 +23,6 @@ import urllib.request
 HERE = pathlib.Path(__file__).parent
 DATA = HERE / "data"
 ORGS = json.loads((HERE / "orgs.json").read_text())
-TOKEN = subprocess.run(["gh", "auth", "token"], capture_output=True, text=True).stdout.strip()
 ACTIVE_DAYS = 365
 SSL = ssl.create_default_context(cafile="/etc/ssl/cert.pem") if pathlib.Path("/etc/ssl/cert.pem").exists() else None
 OSV_ECOSYSTEMS = {
@@ -52,9 +52,14 @@ def http(url, data=None, headers=None, tries=4):
     return None
 
 
+@lru_cache(maxsize=1)
+def github_token():
+    return subprocess.run(["gh", "auth", "token"], capture_output=True, text=True, check=True).stdout.strip()
+
+
 def gh(path):
     return http("https://api.github.com" + path,
-                headers={"Authorization": "Bearer " + TOKEN, "X-GitHub-Api-Version": "2022-11-28",
+                headers={"Authorization": "Bearer " + github_token(), "X-GitHub-Api-Version": "2022-11-28",
                          "Accept": "application/vnd.github+json"})
 
 
@@ -118,8 +123,14 @@ def osv_batch(pkgs):
     for i in range(0, len(pkgs), 500):
         chunk = pkgs[i:i + 500]
         q = {"queries": [{"package": {"ecosystem": e, "name": n}, "version": v} for e, n, v in chunk]}
-        d = http("https://api.osv.dev/v1/querybatch", data=q) or {"results": [{}] * len(chunk)}
-        res += [[v["id"] for v in r.get("vulns", [])] for r in d["results"]]
+        response = http("https://api.osv.dev/v1/querybatch", data=q)
+        results = response.get("results") if isinstance(response, dict) else None
+        if not isinstance(results, list) or len(results) != len(chunk):
+            raise RuntimeError("Incomplete advisory response; inventory snapshot was not written.")
+        for result in results:
+            if not isinstance(result, dict) or "error" in result:
+                raise RuntimeError("Invalid advisory result; inventory snapshot was not written.")
+            res.append([v["id"] for v in result.get("vulns", [])])
     return res
 
 
