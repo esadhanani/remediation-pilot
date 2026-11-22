@@ -1,0 +1,35 @@
+[
+  {
+    "name": "Fluxnova control center",
+    "source": "https://github.com/finos/fluxnova-control-center/pull/39",
+    "check": "Playwright browser installation",
+    "intervention": "runner",
+    "old": {"base": "chromium image unsupported", "upgrade": "chromium image unsupported"},
+    "changed": {"base": "pass", "upgrade": "pass"},
+    "record": "The saved report quotes Ubuntu 26.04 refusing to install Chromium. The failure appeared on develop and the upgrade. Both completed the end-to-end suite on Ubuntu 24.04 (187 passed, 2 skipped each).",
+    "limit": "The reruns used containers, a Maven mirror and an IPv6 adjustment. A hosted run would test the proposed pin in its intended environment.",
+    "patch": "control-center.patch"
+  },
+  {
+    "name": "PyLegend",
+    "source": "https://github.com/finos/pylegend/pull/338",
+    "check": "Python 3.9 test job",
+    "intervention": "runner",
+    "old": {"base": null, "upgrade": "Python 3.9 unavailable on Ubuntu 26.04"},
+    "changed": {"base": null, "upgrade": null},
+    "record": "Twelve upgrades showed the setup failure. The last green main run predated the image change. With Python 3.9.25 available locally, 1,770 tests passed and 33 skipped.",
+    "limit": "The local Python run did not exercise setup-python on the proposed hosted image. The old green main run cannot serve as a contemporary base control.",
+    "patch": "pylegend.patch"
+  },
+  {
+    "name": "Fluxnova BPM platform",
+    "source": "https://github.com/finos/fluxnova-bpm-platform/pull/331",
+    "check": "127-module Maven build",
+    "intervention": "source",
+    "old": {"base": null, "upgrade": "module import blocked by package exports"},
+    "changed": {"base": null, "upgrade": "pass"},
+    "record": "Keeping the dependency upgrade and switching two lines to the public validator API restored the build. Unit suite: 26,032 reported, 0 failures, 0 errors, 118 skipped. Integration suite: 220 reported, 0 failures.",
+    "limit": "Local Devin run. Frontend browser tests and hosted CI remain unverified.",
+    "patch": "bpm-platform.patch"
+  }
+]

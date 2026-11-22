@@ -1,0 +1,18 @@
+diff --git a/.github/workflows/build-ci.yml b/.github/workflows/build-ci.yml
+index 4cab7fe..8465694 100644
+--- a/.github/workflows/build-ci.yml
++++ b/.github/workflows/build-ci.yml
+@@ -53,6 +53,13 @@ jobs:
+       matrix:
+         os: [ ubuntu-latest, windows-latest ]
+         python-version: [ "3.9", "3.10", "3.11", "3.12", "3.13", "3.14" ]
++        # actions/setup-python has no Python 3.9 build for Ubuntu 26.04 (ubuntu-latest); run 3.9 on Ubuntu 24.04.
++        exclude:
++          - os: ubuntu-latest
++            python-version: "3.9"
++        include:
++          - os: ubuntu-24.04
++            python-version: "3.9"
+     runs-on: ${{ matrix.os }}
+     steps:
+       - name: Checkout Repository
