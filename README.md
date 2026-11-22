@@ -21,6 +21,18 @@ Stage one of a vulnerability-remediation programme (inventory, existing backlog,
 
 Per-org and per-repo tables are written to `out/` and are not published here, because they name specific repositories. They are available on request.
 
+## First fixes run through Devin (21 Nov 2026)
+
+Three scoped tasks were handed to Devin Cloud. Each had a bot security upgrade that had been failing CI. Devin was told to reproduce the failure with the repo's own CI commands, fix it, and re-run the tests. Each root cause was then checked independently against GitHub's check-run records.
+
+| Repo | Blocked | Root cause | Fix | Tests after |
+|---|---|---|---|---|
+| finos/pylegend | all 12 open Renovate security PRs | `ubuntu-latest` became Ubuntu 26.04, which has no Python 3.9 build for `setup-python` | 7 lines of workflow config | 1,770 passed on Python 3.9 |
+| finos/fluxnova-control-center | `develop` and 19 of 22 open PRs | same runner change; Playwright 1.58.2 cannot install Chromium on 26.04 | 1 line of workflow config | 187 end-to-end passed |
+| finos/fluxnova-bpm-platform | fast-xml-parser v5 security upgrade | code imports an internal path that v5's `exports` map hides | 2 lines of code | 26,032 unit and 220 integration passed |
+
+In two of three repos the upgrades were never the problem: a runner-image change was failing every PR. Two repos is a finding, not a rate. Test results are from Devin's machines, not GitHub-hosted runners. The task prompts are in `devin-prompts/`.
+
 ## Run it
 
 ```bash
@@ -48,4 +60,4 @@ Needs Python 3.9+, the `gh` CLI signed in (read-only API calls), and for step fo
 - Bot-PR history is capped at 1,000 results per query by GitHub search, which truncates closed-PR history for FINOS, Morgan Stanley, Bloomberg and Adyen. Open-PR counts are complete.
 - "Open bot PR mentioning the package" is a title match and can over-match similarly named packages.
 - 3 of 25 tasks were not confirmed because the repos have more than 60 manifests and only the first 60 were read.
-- The Devin stage has not been run yet.
+- Only three of the 25 scoped tasks have been run through Devin so far, and none of the fixes has been merged upstream yet.
